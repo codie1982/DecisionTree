@@ -1,5 +1,7 @@
 "use strict"
-
+//Selamlar Aşapıdaki örnek ile sağlamasını yapabilirsin.
+//Engin EROL
+//https://erdincuzun.com/makine_ogrenmesi/decision-tree-karar-agaci-id3-algoritmasi-classification-siniflama/
 const veri = {
     ozellik: {
         hava: ["yagmurlu", "yagmurlu", "bulutlu", "gunesli", "gunesli", "gunesli", "bulutlu", "yagmurlu", "yagmurlu", "gunesli", "yagmurlu", "bulutlu", "bulutlu", "gunesli"],
@@ -9,8 +11,9 @@ const veri = {
     },
     hedef: ["hayir", "hayir", "evet", "evet", "evet", "hayir", "evet", "hayir", "evet", "evet", "evet", "evet", "evet", "hayir"]
 }
-
+//Hedef değerlerini kendi içinde gruplanması
 const hedefGroup = groupBy(veri.hedef)
+//Toplam Hedef sayısı
 let toplamHedef = 0
 for (let i = 0; i < hedefGroup.length; i++) {
     Object.values(hedefGroup[i]).map(item => {
@@ -19,7 +22,6 @@ for (let i = 0; i < hedefGroup.length; i++) {
 }
 console.table(veri.ozellik)
 console.table(veri.hedef)
-//console.table(hedefGroup)
 console.log(`Toplam Değer Sayısı : `, toplamHedef)
 console.log(`---------------------------`)
 console.log(`                           `)
@@ -27,11 +29,14 @@ console.log(`                           `)
 console.log(`                           `)
 console.log(`Hedef olasılık Değerleri`)
 console.log(`                           `)
+//Hedef değerlerinin olasılık hesapları
 for (let i = 0; i < hedefGroup.length; i++) {
     console.log(`P(${Object.keys(hedefGroup[i])[0]}) = `, olasilik(Object.values(hedefGroup[i])[0], toplamHedef))
 }
 console.log(`---------------------------`)
-//Permutasyon hesapları
+
+
+//Olasılık hesapları
 let P = []
 console.log(`                           `)
 console.log(`                           `)
@@ -39,9 +44,11 @@ console.log(`                           `)
 console.log(`Olasılık Hesapları`)
 console.log(`---------------------------`)
 for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
-    let ozellik_name = Object.keys(veri.ozellik)[i] //hava
-    let ozellik_value = Object.values(veri.ozellik)[i] //hava
-
+    //Özellik Anahtar değerlerine ulaş
+    let ozellik_name = Object.keys(veri.ozellik)[i]
+    //Özellik Değerlerine Ulaş
+    let ozellik_value = Object.values(veri.ozellik)[i]
+    //Özellik değerlerini kendi içinde grupla
     const ozellik_group = groupBy(ozellik_value)
 
     let pObj = {}
@@ -54,7 +61,7 @@ for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
 
         _pObj[pName] = olasilik(pValue, toplamHedef)
         pObj[ozellik_name] = _pObj
-       
+        //Özellik değerlerini Olasılıklarını Hesapla
         console.log(`P(${pName}) = `, olasilik(pValue, toplamHedef))
     }
     P.push(pObj)
@@ -63,7 +70,7 @@ for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
     else null
 }
 console.log(`---------------------------`)
-
+//Hedef değerleri Entropisi
 let hedefEntropi = entropi(hedefGroup, toplamHedef)
 console.log(`---------------------------`)
 console.log(`                           `)
@@ -81,24 +88,27 @@ console.log(`---------------------------`)
 console.log(`                           `)
 console.log(`                           `)
 console.log(`Özellikler Entropisi ve Kazançlar`)
+//Özellik değerlerini hedef değerlerine göre grupla
 for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
-    let _sbFt = Object.keys(veri.ozellik)[i] //hava
-    let _sbVl = veri.ozellik[_sbFt]  //[ 'yagmurlu', 'yagmurlu', 'bulutlu' ]
+    let _sbFt = Object.keys(veri.ozellik)[i] //Örnek gelebilecek değer : # hava
+    let _sbVl = veri.ozellik[_sbFt]  //Örnek gelebilecek değer :  #[ 'yagmurlu', 'yagmurlu', 'bulutlu' ]
     objP[_sbFt] = []
-
     let _sObj = {}
+
     for (let j = 0; j < _sbVl.length; j++) {
         let __sObj = {}
         let vl = _sbVl[j]
         let text = veri.hedef[j]
+        //Eğer dizide alt değer yok ise değeri ekle
         if (typeof _sObj[vl] != "undefined") {
             if (typeof _sObj[vl][text] == "undefined") {
                 _sObj[vl][text] = 1
             } else {
+                //Eğer değer ve alt değer ver ise değere +1 ekle Bu şekilde saymaya devam etsin
                 _sObj[vl][text] = _sObj[vl][text] + 1
             }
         } else {
-            //İlk Değeri yazsın
+            //Eğer dizide değer yok ise ilk değeri manuel oluştur
             __sObj[text] = 1
             _sObj[vl] = __sObj
         }
@@ -108,15 +118,17 @@ for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
 }
 console.log(`---------------------------`)
 console.log(`                           `)
+//Eğer değer ve alt değer ver ise değere +1 ekle Bu şekilde saymaya devam etsin
 for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
-    let _sbFt = Object.keys(veri.ozellik)[i] //hava
+    let _sbFt = Object.keys(veri.ozellik)[i] ////Örnek gelebilecek değer : #hava
     let __sbft = objP[_sbFt][0]
     let _ent = 0
     console.log(`---------------------------`)
     console.log(`                           `)
     console.log(`                           `)
-    console.log(`Alan : `,_sbFt.toLocaleUpperCase())
-    console.table(__sbft)
+    //İşlenen Özellik
+    console.log(`Özellik : `, _sbFt.toLocaleUpperCase())
+    console.table(__sbft) //Hedef değerler göre karşılaştırmaları
     for (let d = 0; d < Object.keys(__sbft).length; d++) {
         let _vlskey = Object.keys(__sbft)[d]
         let _vls = Object.values(__sbft)[d]
@@ -131,24 +143,38 @@ for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
                 break;
             }
         }
-        console.log(`E(${_vlskey}) = `,entropi)
+         //İşlenen değerin entropi değeri
+        console.log(`E(${_vlskey}) = `, entropi)
         _ent += _grentropi(__p, entropi)
     }
- 
-    console.log(`E(${"hedef"}, ${_sbFt}) = `, ``, _ent,"->",`K(${"hedef"}, ${_sbFt}) = `, ``, gain(hedefEntropi, _ent))
+    //Hedef değerlere göre olan entropi ve Kazanç değerleri
+    console.log(`E(${"hedef"}, ${_sbFt}) = `, ``, _ent, "->", `K(${"hedef"}, ${_sbFt}) = `, ``, gain(hedefEntropi, _ent))
     console.log(`---------------------------`)
 }
 console.log(`                           `)
 console.log(`---------------------------`)
 
+/**
+ * Kazanç Hesabı
+ * @param {*} hedefEntropi 
+ * @param {*} entropi 
+ */
 function gain(hedefEntropi, entropi) {
     return hedefEntropi - entropi
 }
-
+/**
+ * //Özelliklerin entropisini hesaplayan
+ * @param {*} p 
+ * @param {*} e 
+ */
 function _grentropi(p, e) {
     return p * e
 }
-
+/**
+ * Genel Entropi değeri hesaplayan fonksiyon
+ * @param {*} group 
+ * @param {*} total 
+ */
 function _entropi(group, total) {
     let _entropi = 0
     for (let i = 0; i < Object.keys(group).length; i++) {
@@ -157,7 +183,11 @@ function _entropi(group, total) {
     }
     return -1 * _entropi
 }
-
+/**
+ * Hedef değerinin Entropisini hesaplayan fonksiyon
+ * @param {*} group 
+ * @param {*} total 
+ */
 function entropi(group, total) {
     let _entropi = 0
     for (let i = 0; i < group.length; i++) {
@@ -166,10 +196,19 @@ function entropi(group, total) {
     }
     return -1 * _entropi
 }
+/**
+ * Olasılık fonksiyonu
+ * @param {*} deger 
+ * @param {*} toplam 
+ */
 function olasilik(deger, toplam) {
     return deger / toplam
 }
 
+/**
+ * Gruplama fonksiyonu
+ * @param {*} array 
+ */
 function groupBy(array) {
     let _arr = [];
     for (let i = 0; i < array.length; i++) {

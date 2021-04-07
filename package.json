@@ -1,10 +1,10 @@
 {
   "name": "Entropi",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "1.0.1",
+  "description": "Karar ağaçları algoritması için kazanç değerlerini hesabını yapan algoritma",
+  "main": "desicion.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "desicion": "nodeamon desicion"
   },
   "keywords": [],
   "author": "",
