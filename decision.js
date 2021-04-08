@@ -116,6 +116,7 @@ for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
     objP[_sbFt].push(_sObj)
 
 }
+let gains = []
 console.log(`---------------------------`)
 console.log(`                           `)
 //Eğer değer ve alt değer ver ise değere +1 ekle Bu şekilde saymaya devam etsin
@@ -143,23 +144,32 @@ for (let i = 0; i < Object.keys(veri.ozellik).length; i++) {
                 break;
             }
         }
-         //İşlenen değerin entropi değeri
+        //İşlenen değerin entropi değeri
         console.log(`E(${_vlskey}) = `, entropi)
         _ent += _grentropi(__p, entropi)
     }
     //Hedef değerlere göre olan entropi ve Kazanç değerleri
-    console.log(`E(${"hedef"}, ${_sbFt}) = `, ``, _ent, "->", `K(${"hedef"}, ${_sbFt}) = `, ``, gain(hedefEntropi, _ent))
+    let gain = gainCalc(hedefEntropi, _ent)
+    let gainObj = { name: _sbFt, gain: gain }
+    gains.push(gainObj)
+    console.log(`E(${"hedef"}, ${_sbFt}) = `, ``, _ent, "->", `K(${"hedef"}, ${_sbFt}) = `, ``, gain)
     console.log(`---------------------------`)
 }
 console.log(`                           `)
 console.log(`---------------------------`)
-
+console.log(`---------------------------`)
+console.log(`                           `)
+for (let i = 0; i < gains.length; i++) {
+    console.log("Kazanç", gains[i])
+}
+console.log(`                           `)
+console.log(`---------------------------`)
 /**
  * Kazanç Hesabı
  * @param {*} hedefEntropi 
  * @param {*} entropi 
  */
-function gain(hedefEntropi, entropi) {
+function gainCalc(hedefEntropi, entropi) {
     return hedefEntropi - entropi
 }
 /**
