@@ -5,12 +5,17 @@
   "main": "decision.js",
   "scripts": {
     "decision": "nodemon decision",
-    "kmeans": "nodemon kmeans"
+    "kmeans": "nodemon kmeans",
+    "process": "nodemon process"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "nodemon": "^2.0.7"
+  },
+  "devDependencies": {
+    "inquirer": "^8.0.0",
+    "ora": "^5.4.0"
   }
 }
