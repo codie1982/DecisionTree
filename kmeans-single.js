@@ -8,7 +8,7 @@ let waitStop = 2
 let itr = true
 
 let data = []
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 1000; i++) {
     data.push({ x: (Math.random() * 100), y: (Math.random() * 100) })
 }
 console.table(data)
@@ -21,7 +21,7 @@ console.table(data)
     { x: 4.5, y: 5 },
     { x: 3.5, y: 4.5 },
 ] */
-const K = 2
+const K = 10
 //center sayısı K değeri dir
 let Cumes = []
 for (let i = 0; i < K; i++) {

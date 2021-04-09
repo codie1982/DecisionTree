@@ -5,9 +5,9 @@ const path = require('path');
     } = require('worker_threads');
     const workerPath = path.resolve('kmeans-threaded.js');
     if (isMainThread) {
-        module.exports = (data, cume, iterasyon,wait, waitStop,nCumeCounts, itr) => {
+        module.exports = (data,index,kNumber, cume, iterasyon,wait, waitStop,nCumeCounts, itr) => {
             return new Promise((resolve, reject) => {
-                const worker = new Worker(workerPath, { workerData: JSON.stringify({ data, cume, iterasyon,wait, waitStop,nCumeCounts,itr }) })
+                const worker = new Worker(workerPath, { workerData: JSON.stringify({ data,index,kNumber, cume, iterasyon,wait, waitStop,nCumeCounts,itr }) })
                 worker.on("message", resolve)
                 worker.on("error", reject)
                 worker.on('exit', (code) => {
