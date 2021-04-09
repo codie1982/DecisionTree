@@ -4,7 +4,8 @@
   "description": "Karar ağaçları algoritması için kazanç değerlerini hesabını yapan algoritma",
   "main": "decision.js",
   "scripts": {
-    "decision": "nodemon decision"
+    "decision": "nodemon decision",
+    "kmeans": "nodemon kmeans"
   },
   "keywords": [],
   "author": "",
