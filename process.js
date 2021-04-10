@@ -2,7 +2,7 @@ const worker = require('./worker');
 const inquirer = require('inquirer');
 const ora = require('ora');
 (async () => {
-
+  const NS_PER_SEC = 1e9;
   const kMeansDataPrepare = async (kNumber, label) => {
     const spinner = ora(`Calculating with ${label}..`).start();
     let time;
@@ -14,47 +14,45 @@ const ora = require('ora');
 
     try {
       const startTime = process.hrtime();
-      //const datas = prepareData(500)
-      const datas = [
-        { x: 1, y: 1 },
-        { x: 1.5, y: 2 },
-        { x: 3, y: 4 },
-        { x: 5, y: 7 },
-        { x: 3.5, y: 5 },
-        { x: 4.5, y: 5 },
-        { x: 3.5, y: 4.5 },
-      ]
-      //let Cumes = prepareCume(kNumber)
-      let Cumes = [
-        [
-          { x: 1, y: 1 },
-        ]
-        ,
-        [
-          { x: 5, y: 7 }
-        ]
-      ]
+      const datas = prepareData(1000)
+      /*       const datas = [
+              { x: 1, y: 1 },
+              { x: 1.5, y: 2 },
+              { x: 3, y: 4 },
+              { x: 5, y: 7 },
+              { x: 3.5, y: 5 },
+              { x: 4.5, y: 5 },
+              { x: 3.5, y: 4.5 },
+            ] */
+      let Cumes = prepareCume(kNumber)
+      /*       let Cumes = [
+              [
+                { x: 1, y: 1 },
+              ]
+              ,
+              [
+                { x: 5, y: 7 }
+              ]
+            ] */
       let nCumeCounts = []
       while (itr) {
-        for (let i = 0; i < datas.length; i++) {
-          result = await worker(datas[i], i, kNumber, Cumes, iterasyon, wait, waitStop, nCumeCounts, itr)
-          _result = JSON.parse(result)
-          Cumes = _result.Cumes
-          iterasyon = _result.iterasyon
-          itr = _result.itr
-          wait = _result.wait
-          waitStop = _result.waitStop
-          nCumeCounts = _result.nCumeCounts
-        }
+        //for (let i = 0; i < datas.length; i++) {}
+        result = await worker(datas, kNumber, Cumes, iterasyon, wait, waitStop, nCumeCounts, itr)
+        _result = JSON.parse(result)
+        Cumes = _result.Cumes
+        iterasyon = _result.iterasyon
+        itr = _result.itr
+        wait = _result.wait
+        waitStop = _result.waitStop
+        nCumeCounts = _result.nCumeCounts
+
       }
       console.log("Hesaplanan Kümeleme", Cumes)
       console.log("Toplam İterasyon Sayısı : ", iterasyon)
 
-
-      const diffTime = process.hrtime(startTime);
-      console.log("diffTime", diffTime)
-      time = (diffTime[0] + diffTime[1]);
-      spinner.succeed(`${label} result done in: ${time}`);
+      const diff = process.hrtime(startTime);
+      time = (diff[0] * NS_PER_SEC + diff[1]);
+      spinner.succeed(`Benchmark took ${diff[0] * NS_PER_SEC + diff[1]} nanoseconds`);
     } catch (error) {
       console.log("error", error)
     } finally {
