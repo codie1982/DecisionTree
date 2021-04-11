@@ -2,17 +2,15 @@
 //Selamlar Aşapıdaki örnek ile sağlamasını yapabilirsin.
 //Engin EROL
 //https://erdincuzun.com/makine_ogrenmesi/k-nn-algoritmasi/
-let iterasyon = 0
-let wait = 0
-let waitStop = 2
+let iterasyon = 1
 let itr = true
-
-let data = []
-for (let i = 0; i < 1000; i++) {
+let maxIteration = 2
+//let data = []
+/* for (let i = 0; i < 1000; i++) {
     data.push({ x: (Math.random() * 100), y: (Math.random() * 100) })
-}
-console.table(data)
-/* const data = [
+} */
+
+const data = [
     { x: 1, y: 1 },
     { x: 1.5, y: 2 },
     { x: 3, y: 4 },
@@ -20,77 +18,91 @@ console.table(data)
     { x: 3.5, y: 5 },
     { x: 4.5, y: 5 },
     { x: 3.5, y: 4.5 },
-] */
-const K = 10
+]
+console.log("--------------------")
+console.log("Girilen Data")
+console.table(data)
+console.log("--------------------")
+const K = 2
+console.log("--------------------")
+console.log("Seçilen K Değeri ", K)
+console.log("--------------------")
 //center sayısı K değeri dir
-let Cumes = []
-for (let i = 0; i < K; i++) {
+//let Cumes = []
+/* for (let i = 0; i < K; i++) {
     Cumes.push([{ x: (Math.random() * 100), y: (Math.random() * 100) }])
-}
-
-/* const Cumes = [
+} */
+console.log("--------------------")
+console.log("Rastgele Seçilen Küme Merkezleri")
+let Cumes = [
     [
-        { x: (Math.random() * 10), y: (Math.random() * 10) },
+        { x: 1, y: 1 },
     ]
     ,
     [
-        { x: (Math.random() * 10), y: (Math.random() * 10) }
+        { x: 5, y: 7 }
     ]
-] */
-
+]
+console.table(Cumes)
+console.log("--------------------")
 let nCumeCounts = []
 console.time("KMeans")
 while (itr) {
+    console.log(" ")
+    console.log(`----------------------------- ${iterasyon} Numaralı Iterasyon Başlangıç-----------------------------------------------------------------------`)
+    console.log(" ")
     let oCumeCounts = []
-    console.log("Iterasyon Sayısı", iterasyon)
+
     for (let i = 0; i < data.length; i++) {
         let D = []
         let _D = []
         for (let k = 0; k < K; k++) {
             //Kume merkezini hesapla
             let _cumeCenter = cumeCenter(Cumes[k])
+            console.log(" ")
+            console.log(`${k + 1} Numaralı Küme : `, cumeCentertext(Cumes[k]), " - ", " Veri noktası : ", `{X:${data[i].x},Y:${data[i].y}}`)
             for (let j = 0; j < Cumes[k].length; j++) {
                 let diff = distance(_cumeCenter, data[i])
+                console.log("Mesafe : ", "", distancetext(_cumeCenter, data[i]), " = ", diff)
                 D.push(diff)
                 _D.push({ data: data[i], dataIndex: i, cumes: Cumes[k][j], cumeIndex: j, diff, KIndex: k, K: k + 1, _cumeCenter })
             }
+
         }
-        //console.log(`_D : `, _D)
         let minDis = _D.find(item => item.diff == D.sort()[0])
-        //console.log("En Küçük Mesafe : ", minDis)
+        console.log(" ")
+        console.log("En Küçük Mesafe : ", minDis.diff, " Veri noktası ", `{X:${data[i].x},Y:${data[i].y}}`, " için ", "seçilen küme : ", minDis.K)
+        console.log("------------------------------------------------------------")
         if (typeof minDis != "undefined")
             if (!searchPoint(Cumes[minDis.KIndex], minDis.data)) {
                 movePoint(Cumes, minDis.KIndex, minDis.data)
             }
     }
-    
+
     for (let c = 0; c < Cumes.length; c++) {
         oCumeCounts.push(Cumes[c].length)
     }
 
     if (nCumeCounts.length != 0)
         if (isSame(nCumeCounts[nCumeCounts.length - 1], oCumeCounts)) {
-            wait++
-            if (wait > waitStop) {
-                itr = false
-            }
-        } else {
-            wait = 0
-            waitStop = 10
+            itr = false
         }
     nCumeCounts.push(oCumeCounts)
 
-    console.log("Küme ->>> 1")
-    console.table(Cumes[0])
-    console.log("Küme ->>> 2")
-    console.table(Cumes[1])
+
+
+    if (maxIteration != 0) if (iterasyon == maxIteration) itr = false
+    if (maxIteration != 0) if (iterasyon == maxIteration) console.log(`max Iteration ${maxIteration} değeri ile sınırlanmıştır.!!!`)
     iterasyon++
-    if (iterasyon > 500) {
-        console.log("Zorunlu Kapatma")
+    if (iterasyon > 100) {
+        console.log(`Max Iterasyon ${iterasyon} değerine ulaştığı için Zorlu Kapatma seçeneği ile kapatıldı.`)
         itr = false
     }
+    console.log(`------------------------------------------------------------------------------------------------------------------------------------------`)
 }
-console.timeEnd("KMeans")
+console.log("Hesaplanan Kümeler")
+console.table(Cumes)
+
 
 function movePoint(Cumes, moveIndex, point) {
     Cumes[moveIndex].push(point)
@@ -123,6 +135,15 @@ function cumeCenter(cumePoints) {
     }
     return { x: (XTotal / cumePoints.length), y: (YTotal / cumePoints.length) }
 }
+function cumeCentertext(cumePoints) {
+    let XTotal = 0
+    let YTotal = 0
+    for (let i = 0; i < cumePoints.length; i++) {
+        XTotal += cumePoints[i].x
+        YTotal += cumePoints[i].y
+    }
+    return `{x:(${XTotal}/${cumePoints.length}),y:(${YTotal}/${cumePoints.length})}`
+}
 
 function searchPoint(cume, point) {
     for (let i = 0; i < cume.length; i++) {
@@ -143,5 +164,8 @@ function findPointIndex(cume, point) {
 function distance(X1, X2) {
     //console.log("object", X1, X2)
     return Math.sqrt(Math.pow((X2.x - X1.x), 2) + Math.pow((X2.y - X1.y), 2))
+}
+function distancetext(X1, X2) {
+    return `sqrt(pow(${X2.x}-${X1.x}) + pow(${X2.y}-${X1.y}))`
 }
 

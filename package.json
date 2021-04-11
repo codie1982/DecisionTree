@@ -2,7 +2,7 @@
   "name": "Entropi",
   "version": "1.0.1",
   "description": "Karar ağaçları algoritması için kazanç değerlerini hesabını yapan algoritma",
-  "main": "decision.js",
+  "main": "index.js",
   "scripts": {
     "decision": "nodemon decision",
     "kmeans": "nodemon kmeans",
