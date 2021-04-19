@@ -49,6 +49,45 @@ function distance(X1, X2) {
     return Math.sqrt(Math.pow((X2.x - X1.x), 2) + Math.pow((X2.y - X1.y), 2))
 }
 
+function KNN(Cumes, point, K = 5) {
+    let min;
+    let KPoint;
+    let index;
+    let distObj = []
+    for (let i = 0; i < Cumes.length; i++) {
+        for (let j = 0; j < Cumes[i].length; j++) {
+            if (typeof min == "undefined") min = distance(Cumes[i][j], point)
+            if (min > distance(Cumes[i][j], point)) {
+                min = distance(Cumes[i][j], point)
+                index = i
+                KPoint = Cumes[i]
+
+            }
+            distObj.push({ min, i, j, KPoint })
+        }
+    }
+    distObj.sort((a, b) => (a.min > b.min) ? 1 : -1)
+
+    let KK = []
+    let count = 1
+    for (let s = 0; s < K; s++) {
+        let _idx = KK.findIndex(item => item.i == distObj[s].i)
+        if (_idx != -1) {
+            //güncelle
+            KK[_idx].count++
+        } else {
+            //yeni değer oluştur
+            KK.push({ i: distObj[s].i, count })
+        }
+    }
+
+    let KKSORT = KK.sort((a, b) => (a.count > b.count) ? 1 : -1)
+    console.table(KKSORT)
+    let _KKSORT = KKSORT[KKSORT.length - 1]
+    return {
+        min_distance: min, Kindex: _KKSORT.i, KPoint: distObj[_KKSORT.i].KPoint,
+    }
+}
 module.exports = {
-    distance, findPointIndex, searchPoint, cumeCenter, isSame, movePoint,cumeCentertext
+    distance, findPointIndex, searchPoint, cumeCenter, isSame, movePoint,KNN
 }

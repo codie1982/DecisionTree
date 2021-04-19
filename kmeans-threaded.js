@@ -3,8 +3,9 @@
 //https://erdincuzun.com/makine_ogrenmesi/k-nn-algoritmasi/
 ( () => {
     const { Worker, isMainThread, threadId, parentPort, workerData } = require('worker_threads');
-    const { movePoint, isSame, cumeCenter, searchPoint, distance } = require("./util/util")
+    const { movePoint, isSame, cumeCenter, searchPoint, distance,KNN } = require("./util/util")
     "use strict"
+    //promise 
     return new Promise((resolve, reject) => {
         let _dt = JSON.parse(workerData)
         let datas = _dt.data
@@ -15,8 +16,6 @@
         let waitStop = _dt.waitStop
         //let i = _dt.index
         let kNumber = _dt.kNumber
-
-
 
         let nCumeCounts = _dt.nCumeCounts
         console.time("KMeans")
@@ -37,9 +36,9 @@
             }
 
             let minDis = _D.find(item => item.diff == D.sort()[0])
-            console.log("---------------------")
-            console.log("En Küçük Uzunluk :", minDis.diff.toFixed(2), "Seçilen Küme ", minDis.K)
-            console.log("---------------------")
+            //console.log("---------------------")
+            //console.log("En Küçük Uzunluk :", minDis.diff.toFixed(2), "Seçilen Küme ", minDis.K)
+            //console.log("---------------------")
 
             if (typeof minDis != "undefined")
                 if (!searchPoint(Cumes[minDis.KIndex], minDis.data)) {

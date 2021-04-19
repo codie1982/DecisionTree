@@ -1,4 +1,5 @@
 const worker = require('./kmeans-worker');
+const { KNN,searchPoint } = require('./util/util');
 const inquirer = require('inquirer');
 const ora = require('ora');
 (async () => {
@@ -24,16 +25,17 @@ const ora = require('ora');
         { x: 4.5, y: 5 },
         { x: 3.5, y: 4.5 },
       ]
-      //let Cumes = prepareCume(kNumber)
-      let Cumes = [
-        [
-          { x: 1, y: 1 },
-        ]
-        ,
-        [
-          { x: 5, y: 7 }
-        ]
-      ]
+      let Cumes = prepareCume(kNumber, datas)
+      /*   let Cumes = [
+          [
+            { x: 1, y: 1 },
+          ]
+          ,
+          [
+            { x: 5, y: 7 }
+          ]
+        ] */
+      let fPoint = { x: 11, y: 11 }
       let nCumeCounts = []
       while (itr) {
         result = await worker(datas, kNumber, Cumes, iterasyon, wait, waitStop, nCumeCounts, itr)
@@ -48,6 +50,14 @@ const ora = require('ora');
       }
       console.log("Hesaplanan Kümeleme", Cumes)
       console.log("Toplam İterasyon Sayısı : ", iterasyon)
+
+      if (typeof fPoint != "undefined") {
+        console.log(" ")
+        let KNNResult = KNN(Cumes, fPoint)
+        console.log(`X:${fPoint.x} Y:${fPoint.y} noktası ${KNNResult.K} Kümesine dahildir. En yakın Konşu Noktası ${KNNResult.NBRText} ve aradaki mesafe ${KNNResult.min_distance}.`)
+        console.log(" ")
+      }
+
 
       const diff = process.hrtime(startTime);
       time = (diff[0] * NS_PER_SEC + diff[1]);
@@ -83,10 +93,24 @@ const ora = require('ora');
     }
     return data
   }
-  function prepareCume(K) {
+  function prepareCume(K, datas) {
     let Cumes = []
-    for (let i = 0; i < K; i++) {
-      Cumes.push([{ x: (Math.random() * 100), y: (Math.random() * 100) }])
+    if (typeof datas == "undefined") {
+      for (let i = 0; i < K; i++) {
+        Cumes.push([{ x: (Math.random() * 100), y: (Math.random() * 100) }])
+      }
+    } else {
+      for (let i = 0; i < K; i++) {
+        let findTr = true
+        while (findTr) {
+          let selectedData = Math.floor(Math.random() * datas.length)
+          if (!searchPoint(datas, selectedData)) {
+            console.log("selectedData", selectedData)
+            Cumes.push([{ x: datas[selectedData].x, y: datas[selectedData].y }])
+            findTr = false
+          }
+        }
+      }
     }
     return Cumes
   }

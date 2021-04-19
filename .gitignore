@@ -1,4 +1,4 @@
 /node_modules
-_*
+_*.js
 factorial-worker.*
 kmeans.*
