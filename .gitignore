@@ -1,4 +1,9 @@
 /node_modules
 _*.js
+_dt
+data
+tree
 factorial-worker.*
 kmeans.*
+client
+.vscode
