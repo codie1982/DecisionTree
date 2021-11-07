@@ -1,9 +1,13 @@
 /node_modules
-_*.js
-_dt
+_*
 data
 tree
 factorial-worker.*
 kmeans.*
 client
 .vscode
+public
+docs
+*.csv
+*.tree
+*.json

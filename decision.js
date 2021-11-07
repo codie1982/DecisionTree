@@ -4,7 +4,13 @@ const reader = require("readline-sync");
     const fs = require('fs')
     const path = require("path")
     const readline = require('readline');
+    const express = require("express")
+    const Router = express.Router();
+    const MongoClient = require("mongodb").MongoClient;
+    const URI = `mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false`
     const DELEMITER = ";"
+    const client = new MongoClient(URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
     const run = async () => {
         const path = __dirname + "/data"
         const files = fs.readdirSync(path)
@@ -12,7 +18,6 @@ const reader = require("readline-sync");
             let _item = item.split(".")
             if (_item[_item.length - 1] == "csv") return true
         })
-
 
         for (let i = 0; i < fFiles.length; i++) {
             let now = Date.now()
@@ -22,15 +27,51 @@ const reader = require("readline-sync");
             let file = path + "/" + filename
             const nData = await setDecisiondata(file)
             const fData = await formatDecisionTree(nData)
-            const tree = await calculateDecisionTree(fData)
-            fs.writeFile(__dirname + "/tree/" + treename, JSON.stringify(tree), function (err) {
-                if (err) return console.log(err);
-                let diff = Date.now() - now
-                console.log(`${"/data"} Klasörünün aldına ${filename} dosyası için ${treename} isimli Karar ağacı ${diff} ms sürede  oluşturuludu`);
-            });
+            await calculateDecisionTree(fData).then(tree => {
+                fs.writeFile(__dirname + "/tree/" + treename, JSON.stringify(tree), function (err) {
+                    if (err) return console.log(err);
+                    let diff = Date.now() - now
+                    console.log(`${"/data"} Klasörünün aldına ${filename} dosyası için ${treename} isimli Karar ağacı ${diff} ms sürede  oluşturuludu`);
+                });
+            }).catch(err => {
+                fs.writeFile(__dirname + "/tree/" + treename, err.message, function (err) {
+                    if (err) return console.log(err);
+                    console.log(` ${filename} dosyası için veriler hatalı olarak hesaplanmıştır.`);
+                });
+            })
+
         }
     };
 
+    const connectDB = async () => {
+        await client.connect(async (err, client) => {
+            if (err) console.log('failed to connect', err)
+            else {
+                const collection = await client.db("AVAKADO").collection("job")
+                const questionList = await collection.find({ state: true }).toArray()
+                console.log("questionList", questionList)
+
+                if (questionList != null) {
+                    let userid = questionList.userid
+                    let jobid = questionList.id
+                    let form = questionList.form
+                    console.log(`${userid} Kullanıcısının oluşturduğu ${jobid} id numaralı iş için firmaların olası teklif verme durumu.\n`)
+
+                    const treeList = await loadTree()
+                    for (let i = 0; i < treeList.length; i++) {
+                        let corp_name = Object.keys(treeList[i])[0]
+                        console.log("Firma İsmi : ", corp_name)
+                        let corp_guess = await guess(Object.values(treeList[i])[0], form)
+                        console.log("firma bu istek için tahmini olarak : ", corp_guess == "evet" ? " Teklif verir " : "Teklif Vermez")
+                    }
+                } else {
+                    console.log("Hazırda bekleyen herhangi bir talep bulunmamaktadır.")
+                }
+
+            }
+            client.close()
+        });
+    };
     async function setDecisiondata(file) {
         return new Promise((resolve, reject) => {
             (async () => {
@@ -84,7 +125,7 @@ const reader = require("readline-sync");
             let objP = {}
             let maxGainKey = ""
             let index = 0;
-            let branches;
+            let branches = [];
             let nodes = [];
             let reCalcBranches = true
             let tree = []
@@ -99,13 +140,23 @@ const reader = require("readline-sync");
                 if (iteration > 0) {
                     firstNode = nodes[0]
                     lastNode = nodes[nodes.length - 1]
+                    if (iteration == 17) {
+                        console.log("itr", iteration)
 
+                    }
                     //düğüm noktası oluşturulduktan sonra dallanmalar belirlenir
                     if (reCalcBranches) {
                         calcNode = lastNode //node listesinden son düğüm noktasını hesapla
                         parentBranches = getParentBranchList(tree, calcNode)
                         nodes.splice(nodes.length - 1, 1) //hesaplanan düğüm noktasını düğüm listesinden kaldıralım
-                        index = 0//index'i sıfırla
+                        index = 0 //index'i sıfırla
+                        if (nodes.length == 0) {
+                            console.log("DUR")
+                        }
+
+                        if (typeof calcNode != "undefined") {
+                            console.log("itr", iteration)
+                        }
                         branches = groupBy(veri.ozellik[calcNode.split(":")[1]]).map(item => Object.keys(item)[0])
                         reCalcBranches = false
                         //last = iteration + branches.length //iterasyonun tamamlanmam sayısı
@@ -114,9 +165,6 @@ const reader = require("readline-sync");
                     searchAndReplace(maxGainKey, tree, calcNode, setBranch(calcBranch))
                     _branches = parentBranches.concat(calcBranch)
                     //let olddata = datafilter3(veri, _branches.map(item => item.split(":")[1]))
-                    if (iteration == 7) {
-                        console.log("DUR")
-                    }
                     data = datafilter4(veri, _branches.map(item => item.split(":")[1]))
 
                     index++
@@ -141,9 +189,10 @@ const reader = require("readline-sync");
 
                     result = isResult(data.hedef)
                     if (result) {
-                        searchAndReplace(maxGainKey, tree, calcBranch, result, true)
+                        if (maxGainKey != "") {
+                            searchAndReplace(maxGainKey, tree, calcBranch, result, true)
+                        }
                     } else {
-
                         /*for (let i = 0; i < hedefGroup.length; i++) {
                               console.log(`P(${Object.keys(hedefGroup[i])[0]}) = `, olasilik(Object.values(hedefGroup[i])[0], toplamHedef))
                           } */
@@ -227,10 +276,13 @@ const reader = require("readline-sync");
                                         break;
                                     }
                                 }
-                                _ent += _grentropi(__p, entropi)
+                                _ent += _grentropi(__p, entropi) //+ Math.random()
                             }
                             //Hedef değerlere göre olan entropi ve Kazanç değerleri
                             let gain = gainCalc(hedefEntropi, _ent)
+                            if (iteration >= 100) {
+                                gain = gain + Math.random()
+                            }
                             let gainObj = { name: _sbFt, gain: gain }
                             gains.push(gainObj)
                         }
@@ -246,7 +298,6 @@ const reader = require("readline-sync");
                         maxGainKey = `${fixZero(iteration)}:${sortGains[0].name}`
                         if (maxGain != 0) nodes.push(maxGainKey)//düğüm noktası
 
-
                         //ilk Kökün eklenmesi
                         if (iteration == 0)
                             searchAndReplace(maxGainKey, tree, "", setNode(maxGainKey))
@@ -256,14 +307,23 @@ const reader = require("readline-sync");
                     }
 
 
-                }else {
-                    reCalcBranches = true
+                } else {
+                    //reCalcBranches = true
                 }
+                console.log("nodes", nodes)
+                console.log("branches", branches)
                 if (nodes.length == 0 && index == branches.length) itr = false
+
                 iteration++
             }
-            searchAndFixed(tree)
-            resolve(tree)
+
+            if (tree.length != 0) {
+                searchAndFixed(tree)
+                searchAndFixed2(tree)
+                resolve(tree)
+            } else {
+                reject({ error: true, message: "Datasetini kontrol edin" })
+            }
         })
 
     }
@@ -342,6 +402,25 @@ const reader = require("readline-sync");
                 }
                 for (let j = 0; j < Object.values(_tree[i]).length; j++) {
                     searchAndFixed(Object.values(_tree[i])[j])
+                }
+            }
+        }
+    }
+    function searchAndFixed2(_tree) {
+        for (let i = 0; i < _tree.length; i++) {
+            if (typeof _tree[i] == "object") {
+                for (let r = 0; r < Object.keys(_tree[i]).length; r++) {
+                    let _key = Object.keys(_tree[i])[r]
+                    let _value = Object.values(_tree[i])[r]
+                    let _nKey = _key.split("&")
+                    if (_nKey.length > 1) {
+                        let __nkey = _nKey[1]
+                        delete _tree[i][_key]
+                        _tree[i][__nkey] = _value
+                    }
+                }
+                for (let j = 0; j < Object.values(_tree[i]).length; j++) {
+                    searchAndFixed2(Object.values(_tree[i])[j])
                 }
             }
         }
@@ -844,8 +923,7 @@ const reader = require("readline-sync");
         return guess
     }
     async function main() {
-        await run()
-        return;
+        await run();
         let turn = true
         console.clear()
         console.log("********************************************************************\n")
@@ -870,18 +948,7 @@ const reader = require("readline-sync");
                     }
                     break;
                 case 2:
-                    let userid = questionList.userid
-                    let jobid = questionList.id
-                    let form = questionList.form
-                    console.log(`${userid} Kullanıcısının oluşturduğu ${jobid} id numaralı iş için firmaların olası teklif verme durumu.\n`)
-
-                    const treeList = await loadTree()
-                    for (let i = 0; i < treeList.length; i++) {
-                        let corp_name = Object.keys(treeList[i])[0]
-                        console.log("Firma İsmi : ", corp_name)
-                        let corp_guess = await guess(Object.values(treeList[i])[0], form)
-                        console.log("firma bu istek için tahmini olarak : ", corp_guess == "evet" ? " Teklif verir " : "Teklif Vermez")
-                    }
+                    await connectDB()
                     break;
                 case 9:
                     turn = false
